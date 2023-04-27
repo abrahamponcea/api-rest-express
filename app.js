@@ -2,7 +2,7 @@
 //el  parametro indica el archivo y el entorno de depuracion
 const inicioDebug = require('debug')('app:inicio')
 const dbDebug = require('debug')('app:db')
-
+const usuarios = require('./routes/usuarios')
 const express = require('express') //Importa elpaquete
 const Joi = require('joi')
 const app = express() //Crea una instancia de express
@@ -27,6 +27,11 @@ app.use(express.urlencoded({extended:true}))//Nuevo Middleware
 
 app.use(express.static('public'))//Nuevo middleware, nombre de la carpeta que tendra los archivos(recursos estaticos)
 
+//El primer parametro es la ruta raiz asosiada con las peticiones
+//a los datos de los usuarios la ruta se va concatenar como prefijo
+//al inicio de todos las rutas definidas en el archivo usuarios.js
+app.use('/api/usuarios', usuarios)//Middleware que importamos
+
 console.log(`Aplicacion: ${config.get('nombre')}`)
 console.log(`BD Server: ${config.get('configDB.host')}`)
 
@@ -37,8 +42,6 @@ if(app.get('env') === 'development'){
 }
 
 dbDebug('Conectando con la base de datos...')
-
-
 
 /* 
 app.use(logger) //Loger ya hace referancia a la fincion log de logger.js debido al exports
@@ -52,31 +55,8 @@ app.use(function(req, res, next){
 //las funciones de ruta GET, POST, PUT, DELETE
 //Para que estas pueda tranbajar
 
-const usuarios = [
-    {id:0, nombre: 'Raul'},
-    {id:1, nombre: 'Jesus'},
-    {id:2, nombre: 'Abraham'},
-    {id:3, nombre: 'Alex'},
-    {id:4, nombre: 'Dieguita'},
-]
 
-function existeUsuario(id){
-    //parseInt hace el casteo a valores enteros directamente
-    //Devuelve le primer usuario que cumpla con el predicado
-    return usuarios.find(u => u.id === parseInt(id))
-}
 
-function validarUsuario(nom){
-    //Si no se manda el atributo nombre
-    //O el nombre tienelongitud menor a dos
-    //Validacion y creacion del schema con joi
-
-    const schema = Joi.object({
-        nombre: Joi.string().min(3).required()
-    })
-
-    return schema.validate({nombre: nom})
-}
 
 //Consulta en la ruta raiz del sitio
 //Toda peticion siempre va a recibir dor parametros
@@ -87,102 +67,15 @@ app.get('/', (req, res) => {
     res.send('Hola mundo desde Expresss..')
 })
 
-app.get('/api/usuarios', (req, res) => {
-    res.send(usuarios)
-})
-
-//con los : delante del id
-//Express sae que es un parametro a recibir en la ruta
-app.get('/api/usuarios/:id', (req, res) => {
-    // En el cuerpo del objetp req esta la propiedad
-    // params que guarda los parametros enviados
-    //const array = ['Joreg', 'Jesus', 'Abraham', 'Alex']
-    //const pos = req.params.id
-    //res.send(req.params.id)
-    //res.send(array[pos])
-    let usuario = existeUsuario(req.params.id)
-    if(!usuario){
-        res.status(404).send(`El usuario ${req.params.id} no se encontro`)
-        return
-    }
-    res.send(usuario)
-    return
-})
-
 // Recibiendo varios parametros
 // Query strings
 // localhost:300/api/usuarios/1990/2/?nombre=xxxx&single
-app.get('/api/usuarios/:year/:month', (req, res) => {
+/* app.get('/api/usuarios/:year/:month', (req, res) => {
     //En el cuerpo de req esta la respuesta
     // query que guarda los parametros Query String
     res.send(req.query)
 })
-
-
-//La ruta tiene el mismos nombre que la peticios GET
-//Express hace la diferencia dependiendo del tpo de petiion
-//La peticion post se utiliara para insertar un nueo usuario en nuestro arreglo
-app.post('/api/usuarios', (req, res) => {
-    //El obejto request tiene la propiedad body
-    //que va a venir en formati JSON
-    
-    //Se descomponen los valores de error y valor en la variable "erros, value"
-    const {error, value} = validarUsuario(req.body.nombre)
-    if(!error){
-        const usuario = {
-            id: usuarios.length + 1,
-            nombre: req.body.nombre
-        }
-        usuarios.push(usuario)
-        res.send(usuario) 
-    }else{
-        const mensaje = error.details[0].message
-        res.status(400).send(mensaje)
-
-    }
-    return
-})
-
-//Se utiliza para modificar datos existentes
-//Este metodo debe recibir un parametro
-//Id para saber que usuario modificar
-app.put('/api/usuarios/:id', (req, res) => {
-    //Encontrar si existe el usuario
-
-    let usuario = existeUsuario(req.params.id)
-    if (!usuario){
-        res.status(404).send('El usuario no se encuentra')
-        return
-    }
-
-    //validar si el dato recibido es correcto
-    const {error, value} = validarUsuario(req.body.nombre)
-    if(!error){
-        //Actualiza el nombre
-        usuario.nombre = value.nombre
-        res.send(usuario)
-    }else{
-        const mensaje = error.details[0].message
-        res.status(400).send(mensaje)
-    }
-    return
-})
-
-//Recibe el usuario que se desea eliminar
-app.delete('/api/usuarios/:id', (req, res) => {
-    const usuario = existeUsuario(req.params.id)
-    if(!usuario){
-        res.status(404).send('El usuario no se encuentra')
-        return
-    }
-    //encontrar el indice del usuario
-    const index =  usuarios.indexOf(usuario)
-    usuarios.splice(index, 1) //elimina el usuario en elindice
-
-    res.send(usuario)//Se responde con el usuario eliminado
-    return
-})
-
+ */
 app.get('/api/productos', (req, res) => {
     res.send(['mouse', 'teclado', 'bocinas'])
 })
