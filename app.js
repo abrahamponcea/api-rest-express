@@ -3,6 +3,7 @@
 const inicioDebug = require('debug')('app:inicio')
 const dbDebug = require('debug')('app:db')
 const usuarios = require('./routes/usuarios')
+const productos = require('./routes/productos')
 const express = require('express') //Importa elpaquete
 const Joi = require('joi')
 const app = express() //Crea una instancia de express
@@ -31,6 +32,7 @@ app.use(express.static('public'))//Nuevo middleware, nombre de la carpeta que te
 //a los datos de los usuarios la ruta se va concatenar como prefijo
 //al inicio de todos las rutas definidas en el archivo usuarios.js
 app.use('/api/usuarios', usuarios)//Middleware que importamos
+app.use('/api/productos', productos)//Middleware que importamos
 
 console.log(`Aplicacion: ${config.get('nombre')}`)
 console.log(`BD Server: ${config.get('configDB.host')}`)
@@ -76,9 +78,7 @@ app.get('/', (req, res) => {
     res.send(req.query)
 })
  */
-app.get('/api/productos', (req, res) => {
-    res.send(['mouse', 'teclado', 'bocinas'])
-})
+
 
 
 //El modulo process, contiene información delsistema
